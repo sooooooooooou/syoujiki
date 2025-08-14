@@ -15,26 +15,26 @@
   body { margin:0; font-family:'Inter',sans-serif; background:#121212; color:#e0e0e0; }
   header { position:fixed; top:0; left:0; right:0; height:70px; background:#1f1f1f; display:flex; justify-content:space-between; align-items:center; padding:0 30px; box-shadow:0 4px 10px rgba(0,0,0,0.5); z-index:100; border-bottom-left-radius:10px; border-bottom-right-radius:10px;}
   header h1 { margin:0; font-size:1.7em; font-weight:600; color:#ffffff; }
-  header .auth-buttons button { margin-left:12px; padding:8px 16px; border:none; border-radius:25px; cursor:pointer; font-weight:600; background:linear-gradient(90deg,#667eea,#764ba2); color:white; transition:0.3s; }
-  header .auth-buttons button.google{ background:#DB4437; }
-  header .trash-btn { margin-left:12px; background:#ff9800; }
+  header .auth-buttons button { margin-left:12px; padding:8px 16px; border:none; border-radius:25px; cursor:pointer; font-weight:600; background:#2b2b2b; color:white; transition:0.3s; }
+  header .auth-buttons button.google{ background:#000; }
+  header .auth-buttons button:hover{ transform:scale(1.05); }
   #main { margin-top:90px; padding:20px; display:flex; flex-direction:column; align-items:center; }
   #drop-area { width:100%; max-width:950px; min-height:160px; border:2px dashed #444; border-radius:12px; display:flex; justify-content:center; align-items:center; color:#aaa; font-size:1.2em; background:#1e1e1e; cursor:pointer; margin-bottom:25px; transition:0.3s; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
   #drop-area:hover { border-color:#764ba2; box-shadow:0 8px 20px rgba(0,0,0,0.6); transform:translateY(-2px); }
   #gallery { column-count:3; column-gap:15px; width:100%; max-width:950px; }
   .img-container { position:relative; display:inline-block; width:100%; margin-bottom:12px; }
-  .img-container img { width:100%; border-radius:12px; transition: transform 0.3s, box-shadow 0.3s; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.5); }
-  .img-container img:hover { transform: scale(1.03); box-shadow:0 10px 20px rgba(0,0,0,0.8); }
+  .img-container img { width:100%; border-radius:12px; transition: transform 0.3s, box-shadow 0.3s; cursor:pointer; }
+  .img-container img:hover { transform: scale(1.03); }
   .delete-btn { position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.7); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-size:16px; }
   @media (max-width:768px){ #gallery { column-count:2; } }
   @media (max-width:480px){ #gallery { column-count:1; } }
   #auth-modal, #image-modal, #trash-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:200; }
   .modal-content { background:#1f1f1f; padding:30px; border-radius:16px; width:90%; max-width:500px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.5); color:#e0e0e0; }
   #auth-modal input{ width:100%; margin-bottom:12px; padding:10px; border:1px solid #555; border-radius:8px; font-size:1em; background:#2b2b2b; color:#e0e0e0; }
-  #auth-modal button{ width:100%; padding:10px; border:none; border-radius:25px; background:linear-gradient(90deg,#667eea,#764ba2); color:white; font-weight:600; cursor:pointer; transition:0.3s; }
-  #auth-modal button:hover{ transform:scale(1.03); box-shadow:0 5px 15px rgba(0,0,0,0.5); }
+  #auth-modal button{ width:100%; padding:10px; border:none; border-radius:25px; background:#2b2b2b; color:white; font-weight:600; cursor:pointer; transition:0.3s; }
+  #auth-modal button.google{ background:#000; }
   .close-btn { margin-top:15px; display:inline-block; padding:8px 16px; background:#333; border-radius:8px; cursor:pointer; color:#fff; }
-  #image-modal img { max-width:90%; max-height:80vh; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.8); }
+  #image-modal img { max-width:100%; max-height:100%; object-fit:contain; border:none; }
   #trash-modal .img-container { margin-bottom:15px; }
 </style>
 </head>
@@ -45,6 +45,7 @@
   <div class="auth-buttons">
     <button onclick="showLogin()">ログイン</button>
     <button onclick="showSignup()">新規登録</button>
+    <button class="google" onclick="googleLogin()">Googleログイン</button>
   </div>
 </header>
 
@@ -61,15 +62,13 @@
     <input type="email" id="email" placeholder="メール">
     <input type="password" id="password" placeholder="パスワード">
     <button id="auth-submit">送信</button>
+    <button class="google" onclick="googleLogin()">Googleログイン</button>
     <a href="#" onclick="closeAuth()" class="close-btn">閉じる</a>
   </div>
 </div>
 
-<div id="image-modal">
-  <div class="modal-content">
-    <img id="modal-img" src="">
-    <div class="close-btn" onclick="closeImage()">閉じる</div>
-  </div>
+<div id="image-modal" onclick="closeImage()">
+  <img id="modal-img" src="">
 </div>
 
 <div id="trash-modal">
@@ -90,12 +89,39 @@
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
-  function showLogin(){ document.getElementById('auth-modal').style.display='flex'; document.getElementById('auth-title').innerText='ログイン'; document.getElementById('auth-submit').onclick=login; }
-  function showSignup(){ document.getElementById('auth-modal').style.display='flex'; document.getElementById('auth-title').innerText='新規登録'; document.getElementById('auth-submit').onclick=signup; }
+  function showLogin(){
+    document.getElementById('auth-modal').style.display='flex';
+    document.getElementById('auth-title').innerText='ログイン';
+    document.getElementById('auth-submit').onclick=login;
+  }
+  function showSignup(){
+    document.getElementById('auth-modal').style.display='flex';
+    document.getElementById('auth-title').innerText='新規登録';
+    document.getElementById('auth-submit').onclick=signup;
+  }
   function closeAuth(){ document.getElementById('auth-modal').style.display='none'; }
 
-  function signup(){ const email = document.getElementById('email').value; const pw = document.getElementById('password').value; auth.createUserWithEmailAndPassword(email,pw).then(()=>{ alert('登録成功'); closeAuth(); }).catch(e=>alert(e.message)); }
-  function login(){ const email = document.getElementById('email').value; const pw = document.getElementById('password').value; auth.signInWithEmailAndPassword(email,pw).then(()=>{ alert('ログイン成功'); closeAuth(); }).catch(e=>alert(e.message)); }
+  function signup(){
+    const email = document.getElementById('email').value;
+    const pw = document.getElementById('password').value;
+    auth.createUserWithEmailAndPassword(email,pw)
+      .then(()=>{ alert('登録成功'); closeAuth(); })
+      .catch(e=>alert(e.message));
+  }
+  function login(){
+    const email = document.getElementById('email').value;
+    const pw = document.getElementById('password').value;
+    auth.signInWithEmailAndPassword(email,pw)
+      .then(()=>{ alert('ログイン成功'); closeAuth(); })
+      .catch(e=>alert(e.message));
+  }
+
+  function googleLogin(){
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+      .then(result=>{ alert('Googleログイン成功: '+result.user.email); closeAuth(); })
+      .catch(error=>alert(error.message));
+  }
 
   const dropArea = document.getElementById('drop-area');
   const fileElem = document.getElementById('fileElem');
