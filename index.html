@@ -4,32 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Photos</title>
-<!-- Firebase SDKs -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  body { margin:0; font-family:'Inter',sans-serif; background:#f5f5f5; color:#333; }
-  header { position:fixed; top:0; left:0; right:0; height:70px; background:white; display:flex; justify-content:space-between; align-items:center; padding:0 30px; box-shadow:0 2px 10px rgba(0,0,0,0.08); z-index:100; border-bottom-left-radius:10px; border-bottom-right-radius:10px;}
-  header h1 { margin:0; font-size:1.7em; font-weight:600; }
-  header .auth-buttons button { margin-left:10px; padding:8px 16px; border:none; border-radius:25px; cursor:pointer; font-weight:600; background:#667eea; color:white; transition:0.3s; }
-  header .auth-buttons button:hover{ transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+  body { margin:0; font-family:'Inter',sans-serif; background:#121212; color:#e0e0e0; }
+  header { position:fixed; top:0; left:0; right:0; height:70px; background:#1f1f1f; display:flex; justify-content:space-between; align-items:center; padding:0 30px; box-shadow:0 4px 10px rgba(0,0,0,0.5); z-index:100; border-bottom-left-radius:10px; border-bottom-right-radius:10px;}
+  header h1 { margin:0; font-size:1.7em; font-weight:600; color:#ffffff; }
+  header .auth-buttons button { margin-left:12px; padding:8px 16px; border:none; border-radius:25px; cursor:pointer; font-weight:600; background:linear-gradient(90deg,#667eea,#764ba2); color:white; transition:0.3s; }
   header .auth-buttons button.google{ background:#DB4437; }
-  #main { margin-top:90px; padding:20px; max-width:1000px; margin-left:auto; margin-right:auto; }
-  #drop-area { width:100%; min-height:160px; border:2px dashed #bbb; border-radius:12px; display:flex; justify-content:center; align-items:center; color:#666; font-size:1.2em; background:white; cursor:pointer; margin-bottom:25px; transition:0.3s; box-shadow:0 2px 5px rgba(0,0,0,0.05); }
-  #drop-area:hover { border-color:#667eea; box-shadow:0 8px 20px rgba(0,0,0,0.1); transform:translateY(-2px); }
-  #gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:15px; }
-  #gallery img { width:100%; display:block; border-radius:12px; transition: transform 0.3s, box-shadow 0.3s; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05); }
-  #gallery img:hover { transform: scale(1.03); box-shadow:0 10px 20px rgba(0,0,0,0.15); }
-  #auth-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:200; }
-  #auth-modal .modal-content { background:white; padding:30px; border-radius:16px; width:320px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
-  #auth-modal h2{ margin-top:0; margin-bottom:20px; font-weight:600; }
-  #auth-modal input{ width:100%; margin-bottom:12px; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:1em; }
-  #auth-modal button{ width:100%; padding:10px; border:none; border-radius:25px; background:#667eea; color:white; font-weight:600; cursor:pointer; transition:0.3s; }
-  #auth-modal button:hover{ transform:scale(1.03); box-shadow:0 5px 15px rgba(0,0,0,0.2); }
-  #auth-modal a{ font-size:0.9em; color:#667eea; text-decoration:none; display:block; margin-top:10px; }
+  header .trash-btn { margin-left:12px; background:#ff9800; }
+  #main { margin-top:90px; padding:20px; display:flex; flex-direction:column; align-items:center; }
+  #drop-area { width:100%; max-width:950px; min-height:160px; border:2px dashed #444; border-radius:12px; display:flex; justify-content:center; align-items:center; color:#aaa; font-size:1.2em; background:#1e1e1e; cursor:pointer; margin-bottom:25px; transition:0.3s; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
+  #drop-area:hover { border-color:#764ba2; box-shadow:0 8px 20px rgba(0,0,0,0.6); transform:translateY(-2px); }
+  #gallery { column-count:3; column-gap:15px; width:100%; max-width:950px; }
+  .img-container { position:relative; display:inline-block; width:100%; margin-bottom:12px; }
+  .img-container img { width:100%; border-radius:12px; transition: transform 0.3s, box-shadow 0.3s; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.5); }
+  .img-container img:hover { transform: scale(1.03); box-shadow:0 10px 20px rgba(0,0,0,0.8); }
+  .delete-btn { position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.7); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-size:16px; }
+  @media (max-width:768px){ #gallery { column-count:2; } }
+  @media (max-width:480px){ #gallery { column-count:1; } }
+  #auth-modal, #image-modal, #trash-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:200; }
+  .modal-content { background:#1f1f1f; padding:30px; border-radius:16px; width:90%; max-width:500px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.5); color:#e0e0e0; }
+  #auth-modal input{ width:100%; margin-bottom:12px; padding:10px; border:1px solid #555; border-radius:8px; font-size:1em; background:#2b2b2b; color:#e0e0e0; }
+  #auth-modal button{ width:100%; padding:10px; border:none; border-radius:25px; background:linear-gradient(90deg,#667eea,#764ba2); color:white; font-weight:600; cursor:pointer; transition:0.3s; }
+  #auth-modal button:hover{ transform:scale(1.03); box-shadow:0 5px 15px rgba(0,0,0,0.5); }
+  .close-btn { margin-top:15px; display:inline-block; padding:8px 16px; background:#333; border-radius:8px; cursor:pointer; color:#fff; }
+  #image-modal img { max-width:90%; max-height:80vh; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.8); }
+  #trash-modal .img-container { margin-bottom:15px; }
 </style>
 </head>
 <body>
@@ -39,23 +45,38 @@
   <div class="auth-buttons">
     <button onclick="showLogin()">ログイン</button>
     <button onclick="showSignup()">新規登録</button>
-    <button class="google" onclick="loginWithGoogle()">Google</button>
   </div>
 </header>
 
 <div id="main">
-  <div id="drop-area">ここに画像をドラッグ＆ドロップ、またはクリック</div>
+  <div id="drop-area">ここに画像をドラッグ＆ドロップ、またはクリックして選択</div>
   <input type="file" id="fileElem" multiple style="display:none">
   <div id="gallery"></div>
 </div>
 
+<!-- Modals -->
 <div id="auth-modal">
   <div class="modal-content">
     <h2 id="auth-title">ログイン</h2>
     <input type="email" id="email" placeholder="メール">
     <input type="password" id="password" placeholder="パスワード">
     <button id="auth-submit">送信</button>
-    <a href="#" onclick="closeAuth()">閉じる</a>
+    <a href="#" onclick="closeAuth()" class="close-btn">閉じる</a>
+  </div>
+</div>
+
+<div id="image-modal">
+  <div class="modal-content">
+    <img id="modal-img" src="">
+    <div class="close-btn" onclick="closeImage()">閉じる</div>
+  </div>
+</div>
+
+<div id="trash-modal">
+  <div class="modal-content">
+    <h2>ゴミ箱</h2>
+    <div id="trash-gallery"></div>
+    <div class="close-btn" onclick="closeTrash()">閉じる</div>
   </div>
 </div>
 
@@ -64,91 +85,79 @@
   const firebaseConfig = {
     apiKey: "AIzaSyBtHs722o6_JWvbgIo5rHuAGEcnNiGqFhg",
     authDomain: "aaaaaa-d2ab0.firebaseapp.com",
-    projectId: "aaaaaa-d2ab0",
+    projectId: "aaaaaa-d2ab0"
   };
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
-  function showLogin(){ 
-    document.getElementById('auth-modal').style.display='flex'; 
-    document.getElementById('auth-title').innerText='ログイン'; 
-    document.getElementById('auth-submit').onclick=login; 
-  }
-  function showSignup(){ 
-    document.getElementById('auth-modal').style.display='flex'; 
-    document.getElementById('auth-title').innerText='新規登録'; 
-    document.getElementById('auth-submit').onclick=signup; 
-  }
+  function showLogin(){ document.getElementById('auth-modal').style.display='flex'; document.getElementById('auth-title').innerText='ログイン'; document.getElementById('auth-submit').onclick=login; }
+  function showSignup(){ document.getElementById('auth-modal').style.display='flex'; document.getElementById('auth-title').innerText='新規登録'; document.getElementById('auth-submit').onclick=signup; }
   function closeAuth(){ document.getElementById('auth-modal').style.display='none'; }
 
-  function signup(){ 
-    const email = document.getElementById('email').value; 
-    const pw = document.getElementById('password').value; 
-    auth.createUserWithEmailAndPassword(email, pw)
-      .then(()=>{ alert('登録成功'); closeAuth(); })
-      .catch(e=>alert(e.message)); 
-  }
-  function login(){ 
-    const email = document.getElementById('email').value; 
-    const pw = document.getElementById('password').value; 
-    auth.signInWithEmailAndPassword(email, pw)
-      .then(()=>{ alert('ログイン成功'); closeAuth(); })
-      .catch(e=>alert(e.message)); 
-  }
-
-  function loginWithGoogle(){
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
-      .then(result=>{
-        alert('Googleログイン成功: ' + result.user.email);
-        closeAuth();
-      })
-      .catch(e=>{ alert('Googleログインエラー: ' + e.message); });
-  }
-
-  auth.onAuthStateChanged(user => { 
-    if(user){ console.log('ログイン中:', user.email); } 
-    else { console.log('ログアウト'); } 
-  });
-
-  // Cloudinaryアップロード
-  const cloudName = "dqud9tdr8";
-  const uploadPreset = "annkomoti";
+  function signup(){ const email = document.getElementById('email').value; const pw = document.getElementById('password').value; auth.createUserWithEmailAndPassword(email,pw).then(()=>{ alert('登録成功'); closeAuth(); }).catch(e=>alert(e.message)); }
+  function login(){ const email = document.getElementById('email').value; const pw = document.getElementById('password').value; auth.signInWithEmailAndPassword(email,pw).then(()=>{ alert('ログイン成功'); closeAuth(); }).catch(e=>alert(e.message)); }
 
   const dropArea = document.getElementById('drop-area');
   const fileElem = document.getElementById('fileElem');
+  const gallery = document.getElementById('gallery');
+  const trashGallery = document.getElementById('trash-gallery');
+  let images = [];
+  let trash = [];
+
   dropArea.addEventListener('click',()=>fileElem.click());
-  dropArea.addEventListener('dragover', e=>{ e.preventDefault(); dropArea.style.borderColor='#667eea'; });
-  dropArea.addEventListener('dragleave', e=>{ e.preventDefault(); dropArea.style.borderColor='#bbb'; });
-  dropArea.addEventListener('drop', e=>{ e.preventDefault(); dropArea.style.borderColor='#bbb'; handleFiles(e.dataTransfer.files); });
+  dropArea.addEventListener('dragover', e=>{ e.preventDefault(); dropArea.style.borderColor='#764ba2'; });
+  dropArea.addEventListener('dragleave', e=>{ e.preventDefault(); dropArea.style.borderColor='#444'; });
+  dropArea.addEventListener('drop', e=>{ e.preventDefault(); dropArea.style.borderColor='#444'; handleFiles(e.dataTransfer.files); });
   fileElem.addEventListener('change', e=>handleFiles(e.target.files));
 
-  async function handleFiles(files){
-    if (!files.length) return;
-    const user = auth.currentUser;
-    if(!user){ alert('ログインしてください'); return; }
-
-    for (let file of files){
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', uploadPreset);
-      formData.append('folder', 'private_photos/' + user.uid);
-
-      try{
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-          method:'POST',
-          body: formData
-        });
-        const data = await res.json();
-        const img = document.createElement('img');
-        img.src = data.secure_url;
-        document.getElementById('gallery').appendChild(img);
-      }catch(err){
-        alert('アップロードエラー: ' + err.message);
-      }
-    }
+  function handleFiles(files){
+    Array.from(files).forEach(file=>{
+      const url = URL.createObjectURL(file);
+      const id = Date.now() + Math.random();
+      images.push({id, url});
+      renderGallery();
+    });
   }
-</script>
 
+  function renderGallery(){
+    gallery.innerHTML='';
+    images.forEach(img=>{
+      const div = document.createElement('div'); div.className='img-container';
+      const image = document.createElement('img'); image.src=img.url; image.onclick=()=>openImage(img.url);
+      const delBtn = document.createElement('button'); delBtn.className='delete-btn'; delBtn.innerText='×'; delBtn.onclick=()=>moveToTrash(img.id);
+      div.appendChild(image); div.appendChild(delBtn);
+      gallery.appendChild(div);
+    });
+  }
+
+  function openImage(url){ document.getElementById('modal-img').src=url; document.getElementById('image-modal').style.display='flex'; }
+  function closeImage(){ document.getElementById('image-modal').style.display='none'; }
+
+  function moveToTrash(id){
+    const index = images.findIndex(i=>i.id===id);
+    if(index>-1){ trash.push(images[index]); images.splice(index,1); renderGallery(); renderTrash(); }
+  }
+
+  function renderTrash(){
+    trashGallery.innerHTML='';
+    trash.forEach(img=>{
+      const div = document.createElement('div'); div.className='img-container';
+      const image = document.createElement('img'); image.src=img.url; image.onclick=()=>openImage(img.url);
+      const restoreBtn = document.createElement('button'); restoreBtn.className='delete-btn'; restoreBtn.innerText='↩'; restoreBtn.onclick=()=>restoreFromTrash(img.id);
+      div.appendChild(image); div.appendChild(restoreBtn);
+      trashGallery.appendChild(div);
+    });
+  }
+
+  function restoreFromTrash(id){
+    const index = trash.findIndex(i=>i.id===id);
+    if(index>-1){ images.push(trash[index]); trash.splice(index,1); renderGallery(); renderTrash(); }
+  }
+
+  function openTrash(){ document.getElementById('trash-modal').style.display='flex'; renderTrash(); }
+  function closeTrash(){ document.getElementById('trash-modal').style.display='none'; }
+
+  auth.onAuthStateChanged(user=>{ if(user){ console.log('ログイン中:', user.email); }else{ console.log('ログアウト'); } });
+</script>
 </body>
 </html>
